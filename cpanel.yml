@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/ecoguz/catalogo.ecoguz.com/api/
+    - /bin/cp -R ./* $DEPLOYPATH
