@@ -93,8 +93,8 @@ return new class extends Migration
 
         // Roles por defecto
         DB::table('Rol')->insert([
-            ['nombre' => 'admin', 'created_at' => now(),'updated_at' => now()],
-            ['nombre' => 'cliente', 'created_at' => now(),'updated_at' => now()],
+            ['nombre' => 'Administrador', 'created_at' => now(),'updated_at' => now()],
+            ['nombre' => 'Cliente', 'created_at' => now(),'updated_at' => now()],
         ]);
 
         // Usuario administrador por defecto
