@@ -87,6 +87,26 @@ return new class extends Migration
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
         });
+        // ----------------------
+        // Datos semilla
+        // ----------------------
+
+        // Roles por defecto
+        DB::table('Rol')->insert([
+            ['nombre' => 'admin', 'created_at' => now(),'updated_at' => now()],
+            ['nombre' => 'cliente', 'created_at' => now(),'updated_at' => now()],
+        ]);
+
+        // Usuario administrador por defecto
+        DB::table('Usuario')->insert([
+            'nombre' => 'Admin Sistema',
+            'nombreUsuario' => 'admin',
+            'correo' => 'admin@catalogo.com',
+            'password' => Hash::make('admin123'),
+            'idRol' => 1, // id del rol 'admin' recién insertado
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     public function down(): void
