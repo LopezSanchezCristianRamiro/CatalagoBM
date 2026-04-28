@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('nombre', 150);
             $table->string('descripcion', 150)->nullable();
             $table->decimal('precio', 10, 2);
+            $table->decimal('precioDescuento', 10, 2)->nullable();
             $table->foreignId('idCategoria')->nullable()->constrained('Categoria', 'idCategoria')->onUpdate('cascade')->onDelete('set null');
             $table->timestamps();
         });
