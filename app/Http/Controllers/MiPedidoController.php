@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Pedido;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-
+use App\Models\DetallePedido;
+use Illuminate\Support\Facades\DB;
 class MiPedidoController extends Controller
 {
     /**
