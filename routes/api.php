@@ -12,6 +12,8 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::apiResource('categorias', CategoriaController::class);
 Route::get('/catalogo', [PublicCatalogoController::class, 'getProductos']);
+Route::get('/mis-pedidos', [MiPedidoController::class, 'misPedidos']);
+Route::post('/pedidos', [MiPedidoController::class, 'store']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);

@@ -29,4 +29,46 @@ class MiPedidoController extends Controller
             'pedidos' => $pedidos,
         ]);
     }
+
+    public function store(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'tipoPago'              => 'required|string',
+            'observacion'          => 'nullable|string',
+            'items'                => 'required|array|min:1',
+            'items.*.idProducto'   => 'required|exists:Producto,idProducto',
+            'items.*.cantidad'     => 'required|integer|min:1',
+            'items.*.precioUnitario' => 'required|numeric|min:0',
+        ]);
+
+        return DB::transaction(function () use ($data, $request) {
+            $total = collect($data['items'])->sum(
+                fn($i) => $i['precioUnitario'] * $i['cantidad']
+            );
+
+            $pedido = Pedido::create([
+                'idUsuario'     => $request->user()->idUsuario,
+                'tipoPago'      => $data['tipoPago'],
+                'observacion'   => $data['observacion'] ?? null,
+                'estado'        => 'pendiente',
+                'total'         => $total,
+                'fechaCreacion' => now(),
+            ]);
+
+            foreach ($data['items'] as $item) {
+                DetallePedido::create([
+                    'idPedido'       => $pedido->idPedido,
+                    'idProducto'     => $item['idProducto'],
+                    'cantidad'       => $item['cantidad'],
+                    'precioUnitario' => $item['precioUnitario'],
+                    'subTotal'       => $item['precioUnitario'] * $item['cantidad'],
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'Pedido creado correctamente',
+                'pedido'  => $pedido->load('detalles.producto'),
+            ], 201);
+        });
+    }
 }
