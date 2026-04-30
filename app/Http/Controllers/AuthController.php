@@ -71,21 +71,27 @@ class AuthController extends Controller
     }
     public function register(Request $request): JsonResponse
         {
+        try {
             $validated = $request->validate([
-                'nombre' => 'required|string|max:150',
+                'nombre'        => 'required|string|max:150',
                 'nombreUsuario' => 'required|string|max:100|unique:Usuario,nombreUsuario',
-                'correo' => 'required|email|max:50|unique:Usuario,correo',
-                'password' => 'required|string|min:6',
-                'telefono' => 'nullable|string|max:50',
-        ]);
+                'correo'        => 'required|email|max:50|unique:Usuario,correo',
+                'password'      => 'required|string|min:6',
+                'telefono'      => 'required|string|max:50',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Algunos datos ya se encuentran registrados o son inválidos.',
+            ], 422);
+        }
 
         $user = Usuario::create([
             'nombre' => $validated['nombre'],
             'nombreUsuario' => $validated['nombreUsuario'],
             'correo' => $validated['correo'],
-            'telefono' => $validated['telefono'] ?? null,
+            'telefono' => $validated['telefono'],
             'password' => Hash::make($validated['password']),
-            'idRol' => 2, // Rol "Cliente" por defecto (ajusta según tu base)
+            'idRol' => 2,
         ]);
 
         $token = $user->createToken('mobile')->plainTextToken;
