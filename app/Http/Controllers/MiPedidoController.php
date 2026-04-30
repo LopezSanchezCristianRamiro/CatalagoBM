@@ -7,7 +7,8 @@ use App\Models\DetallePedido;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\DetallePedido;
+use Illuminate\Support\Facades\DB;
 class MiPedidoController extends Controller
 {
     /**

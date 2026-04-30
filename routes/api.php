@@ -7,6 +7,7 @@ use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\PublicCatalogoController;
 use App\Http\Controllers\MiPedidoController;
+use App\Http\Controllers\AdminPedidoController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -20,4 +21,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('productos', ProductoController::class);
     Route::post('/pedidos', [MiPedidoController::class, 'store']);
     Route::get('/mis-pedidos', [MiPedidoController::class, 'misPedidos']);
-});
+    Route::get('/admin/pedidos', [AdminPedidoController::class, 'index']);
+    Route::put('/admin/pedidos/{idPedido}/estado', [AdminPedidoController::class, 'updateEstado']);
+    });
