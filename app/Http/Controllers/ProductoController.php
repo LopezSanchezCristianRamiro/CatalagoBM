@@ -77,7 +77,7 @@ class ProductoController extends Controller
                 'precio' => $data['precio'],
                 'precioDescuento' => $data['precioDescuento'] ?? null,
                 'idCategoria' => $data['idCategoria'],
-                'estado' => $data['estado'] ?? $producto->estado, // 🔥 IMPORTANTE
+                'estado' => $data['estado'] ?? $producto->estado,
             ]);
 
             if (array_key_exists('urlFotos', $data)) {
