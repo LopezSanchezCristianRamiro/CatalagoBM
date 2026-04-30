@@ -4,8 +4,8 @@ deployment:
     - export DEPLOYPATH=/home/met4s0ft3/catalogo.metasoft-bolivia.com/api
     # 1. Respaldar .env (si existe)
     - /bin/cp $DEPLOYPATH/.env /tmp/.env.backup.$(date +%s) 2>/dev/null || true
-    # 2. Borrar TODO excepto .env y storage
-    - find $DEPLOYPATH -mindepth 1 -not \( -name ".env" -o -name "storage" \) -exec rm -rf {} \;
+    # 2. Borrar TODO excepto .env y storage (ignora errores si ya no existen)
+    - find $DEPLOYPATH -mindepth 1 -not \( -name ".env" -o -name "storage" \) -exec rm -rf {} \; 2>/dev/null || true
     # 3. Copiar archivos frescos
     - /bin/cp -R ./* $DEPLOYPATH
     # 4. Restaurar .env
