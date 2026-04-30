@@ -2,24 +2,22 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/met4s0ft3/catalogo.metasoft-bolivia.com/api
-    # 1. Respaldar .env existente (si lo hay) a un archivo fijo
-    - 'if [ -f $DEPLOYPATH/.env ]; then /bin/cp $DEPLOYPATH/.env /tmp/.env_deploy_backup; fi'
-    # 2. Eliminar todo el contenido excepto .env y storage
+    # 1. Respaldar .env (si existe)
+    - /bin/cp $DEPLOYPATH/.env /tmp/.env.backup.$(date +%s) 2>/dev/null || true
+    # 2. Borrar TODO excepto .env y storage
     - find $DEPLOYPATH -mindepth 1 -not \( -name ".env" -o -name "storage" \) -exec rm -rf {} \;
-    # 3. Copiar archivos frescos del repositorio
+    # 3. Copiar archivos frescos
     - /bin/cp -R ./* $DEPLOYPATH
-    # 4. Restaurar .env o crearlo desde .env.example
-    - 'if [ -f /tmp/.env_deploy_backup ]; then /bin/cp /tmp/.env_deploy_backup $DEPLOYPATH/.env; else /bin/cp $DEPLOYPATH/.env.example $DEPLOYPATH/.env; fi'
-    # 5. Limpiar backup
-    - rm -f /tmp/.env_deploy_backup
-    # 6. Instalar dependencias de Composer
+    # 4. Restaurar .env
+    - ls /tmp/.env.backup.* 2>/dev/null && /bin/cp /tmp/.env.backup.* $DEPLOYPATH/.env || true
+    # 5. Instalar dependencias
     - cd $DEPLOYPATH
     - /usr/local/bin/php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction --no-progress
-    # 7. Ejecutar migraciones
+    # 6. Migraciones
     - /usr/local/bin/php artisan migrate --force --no-interaction
-    # 8. Cachear configuración, rutas y vistas
+    # 7. Cachear
     - /usr/local/bin/php artisan config:cache
     - /usr/local/bin/php artisan route:cache
     - /usr/local/bin/php artisan view:cache
-    # 9. Ajustar permisos de almacenamiento
+    # 8. Permisos
     - chmod -R 775 $DEPLOYPATH/storage $DEPLOYPATH/bootstrap/cache
