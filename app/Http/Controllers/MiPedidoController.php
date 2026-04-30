@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pedido;
+use App\Models\DetallePedido;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class MiPedidoController extends Controller
 {
@@ -33,42 +35,56 @@ class MiPedidoController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'tipoPago'              => 'required|string',
-            'observacion'          => 'nullable|string',
-            'items'                => 'required|array|min:1',
-            'items.*.idProducto'   => 'required|exists:Producto,idProducto',
-            'items.*.cantidad'     => 'required|integer|min:1',
-            'items.*.precioUnitario' => 'required|numeric|min:0',
+            'tipoPago'                => 'required|string',
+            'observacion'             => 'nullable|string',
+            'items'                   => 'required|array|min:1',
+            'items.*.idProducto'      => 'required|exists:Producto,idProducto',
+            'items.*.cantidad'        => 'required|integer|min:1',
+            'items.*.precioUnitario'  => 'required|numeric|min:0',
         ]);
 
-        return DB::transaction(function () use ($data, $request) {
-            $total = collect($data['items'])->sum(
-                fn($i) => $i['precioUnitario'] * $i['cantidad']
-            );
+        try {
+            $pedido = DB::transaction(function () use ($data, $request) {
+                $total = collect($data['items'])->sum(function ($i) {
+                    return $i['precioUnitario'] * $i['cantidad'];
+                });
 
-            $pedido = Pedido::create([
-                'idUsuario'     => $request->user()->idUsuario,
-                'tipoPago'      => $data['tipoPago'],
-                'observacion'   => $data['observacion'] ?? null,
-                'estado'        => 'pendiente',
-                'total'         => $total,
-                'fechaCreacion' => now(),
-            ]);
-
-            foreach ($data['items'] as $item) {
-                DetallePedido::create([
-                    'idPedido'       => $pedido->idPedido,
-                    'idProducto'     => $item['idProducto'],
-                    'cantidad'       => $item['cantidad'],
-                    'precioUnitario' => $item['precioUnitario'],
-                    'subTotal'       => $item['precioUnitario'] * $item['cantidad'],
+                $pedido = Pedido::create([
+                    'idUsuario'     => $request->user()->idUsuario,
+                    'tipoPago'      => $data['tipoPago'],
+                    'observacion'   => $data['observacion'] ?? null,
+                    'estado'        => 'pendiente',
+                    'total'         => $total,
+                    'fechaCreacion' => now(),
                 ]);
-            }
+
+                foreach ($data['items'] as $item) {
+                    DetallePedido::create([
+                        'idPedido'       => $pedido->idPedido,
+                        'idProducto'     => $item['idProducto'],
+                        'cantidad'       => $item['cantidad'],
+                        'precioUnitario' => $item['precioUnitario'],
+                        'subTotal'       => $item['precioUnitario'] * $item['cantidad'],
+                    ]);
+                }
+
+                return $pedido;
+            });
+
+            // Cargar relaciones para la respuesta
+            $pedido->load('detalles.producto.fotos');
 
             return response()->json([
                 'message' => 'Pedido creado correctamente',
-                'pedido'  => $pedido->load('detalles.producto'),
+                'pedido'  => $pedido,
             ], 201);
-        });
+
+        } catch (\Throwable $e) {
+            // Loguea el error si quieres: \Log::error($e);
+            return response()->json([
+                'message' => 'Error al crear el pedido',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

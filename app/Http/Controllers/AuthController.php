@@ -70,18 +70,20 @@ class AuthController extends Controller
         ];
     }
     public function register(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:150',
-            'nombreUsuario' => 'required|string|max:100|unique:Usuario,nombreUsuario',
-            'correo' => 'required|email|max:50|unique:Usuario,correo',
-            'password' => 'required|string|min:6',
+        {
+            $validated = $request->validate([
+                'nombre' => 'required|string|max:150',
+                'nombreUsuario' => 'required|string|max:100|unique:Usuario,nombreUsuario',
+                'correo' => 'required|email|max:50|unique:Usuario,correo',
+                'password' => 'required|string|min:6',
+                'telefono' => 'nullable|string|max:50',
         ]);
 
         $user = Usuario::create([
             'nombre' => $validated['nombre'],
             'nombreUsuario' => $validated['nombreUsuario'],
             'correo' => $validated['correo'],
+            'telefono' => $validated['telefono'] ?? null,
             'password' => Hash::make($validated['password']),
             'idRol' => 2, // Rol "Cliente" por defecto (ajusta según tu base)
         ]);
@@ -93,4 +95,5 @@ class AuthController extends Controller
             'user' => $this->formatUser($user),
         ], 201);
     }
+
 }

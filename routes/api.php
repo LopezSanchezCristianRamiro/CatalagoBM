@@ -13,12 +13,11 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::apiResource('categorias', CategoriaController::class);
 Route::get('/catalogo', [PublicCatalogoController::class, 'getProductos']);
 Route::get('/catalogo/{idProducto}', [PublicCatalogoController::class, 'show']);
-Route::get('/mis-pedidos', [MiPedidoController::class, 'misPedidos']);
-Route::post('/pedidos', [MiPedidoController::class, 'store']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::apiResource('productos', ProductoController::class);
+    Route::post('/pedidos', [MiPedidoController::class, 'store']);
     Route::get('/mis-pedidos', [MiPedidoController::class, 'misPedidos']);
 });
