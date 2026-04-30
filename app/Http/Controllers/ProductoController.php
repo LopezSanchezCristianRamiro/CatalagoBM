@@ -26,6 +26,7 @@ class ProductoController extends Controller
             'precio' => 'required|numeric|min:0',
             'precioDescuento' => 'nullable|numeric|min:0',
             'idCategoria' => 'required|exists:Categoria,idCategoria',
+            'estado' => 'nullable|in:activado,desactivado',
             'urlFotos' => 'nullable|array',
             'urlFotos.*' => 'required|string',
         ]);
@@ -37,6 +38,7 @@ class ProductoController extends Controller
                 'precio' => $data['precio'],
                 'precioDescuento' => $data['precioDescuento'] ?? null,
                 'idCategoria' => $data['idCategoria'],
+                'estado' => $data['estado'] ?? 'activado', // 🔥 IMPORTANTE
             ]);
 
             foreach (($data['urlFotos'] ?? []) as $urlFoto) {
@@ -63,6 +65,7 @@ class ProductoController extends Controller
             'precio' => 'required|numeric|min:0',
             'precioDescuento' => 'nullable|numeric|min:0',
             'idCategoria' => 'required|exists:Categoria,idCategoria',
+            'estado' => 'nullable|in:activado,desactivado', // 🔥 FALTABA
             'urlFotos' => 'nullable|array',
             'urlFotos.*' => 'required|string',
         ]);
@@ -74,6 +77,7 @@ class ProductoController extends Controller
                 'precio' => $data['precio'],
                 'precioDescuento' => $data['precioDescuento'] ?? null,
                 'idCategoria' => $data['idCategoria'],
+                'estado' => $data['estado'] ?? $producto->estado, // 🔥 IMPORTANTE
             ]);
 
             if (array_key_exists('urlFotos', $data)) {
