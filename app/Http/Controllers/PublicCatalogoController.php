@@ -16,7 +16,8 @@ class PublicCatalogoController extends Controller
         $idCategoria = $request->query('idCategoria');
         $soloPromociones = $request->query('soloPromociones');
 
-        $query = Producto::with(['fotos', 'categoria']);
+       $query = Producto::with(['fotos', 'categoria'])
+    ->where('estado', 'activado');
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
@@ -59,22 +60,25 @@ class PublicCatalogoController extends Controller
 
         return response()->json($productos);
     }
-    public function show($idProducto)
-    {
-        $producto = Producto::with(['fotos', 'categoria'])->findOrFail($idProducto);
+   public function show($idProducto)
+{
+    $producto = Producto::with(['fotos', 'categoria'])
+        ->where('estado', 'activado')
+        ->findOrFail($idProducto);
 
-        // Convertir rutas de fotos a URLs absolutas
-        $producto->fotos->transform(function ($foto) {
-            if ($foto->urlFoto && !filter_var($foto->urlFoto, FILTER_VALIDATE_URL)) {
-                try {
-                    $foto->urlFoto = url(Storage::url($foto->urlFoto));
-                } catch (\Exception $e) {
-                    $foto->urlFoto = asset($foto->urlFoto);
-                }
+    // Convertir rutas de fotos a URLs absolutas
+    $producto->fotos->transform(function ($foto) {
+        if ($foto->urlFoto && !filter_var($foto->urlFoto, FILTER_VALIDATE_URL)) {
+            try {
+                $foto->urlFoto = url(Storage::url($foto->urlFoto));
+            } catch (\Exception $e) {
+                $foto->urlFoto = asset($foto->urlFoto);
             }
-            return $foto;
-        });
+        }
 
-        return response()->json($producto);
-    }
+        return $foto;
+    });
+
+    return response()->json($producto);
+}
 }
