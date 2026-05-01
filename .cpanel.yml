@@ -2,22 +2,18 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/met4s0ft3/catalogo.metasoft-bolivia.com/api
-    # 1. Respaldar .env (si existe)
-    - /bin/cp $DEPLOYPATH/.env /tmp/.env.backup.$(date +%s) 2>/dev/null || true
-    # 2. Borrar TODO excepto .env y storage (ignora errores si ya no existen)
-    - find $DEPLOYPATH -mindepth 1 -not \( -name ".env" -o -name "storage" \) -exec rm -rf {} \; 2>/dev/null || true
-    # 3. Copiar archivos frescos
+    # 1. Borrar TODO excepto .env, storage y .htaccess
+    - find $DEPLOYPATH -mindepth 1 -not \( -name ".env" -o -name "storage" -o -name ".htaccess" \) -exec rm -rf {} \; 2>/dev/null || true
+    # 2. Copiar archivos frescos del repositorio
     - /bin/cp -R ./* $DEPLOYPATH
-    # 4. Restaurar .env
-    - ls /tmp/.env.backup.* 2>/dev/null && /bin/cp /tmp/.env.backup.* $DEPLOYPATH/.env || true
-    # 5. Instalar dependencias
+    # 3. Instalar dependencias de Composer
     - cd $DEPLOYPATH
-    - composer install --no-dev --optimize-autoloader --no-interaction --no-progress
-    # 6. Migraciones
-    - php artisan migrate:fresh --seed --force --no-interaction
-    # 7. Cachear
+    - php composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+    # 4. Ejecutar solo las migraciones nuevas (seguro para producción)
+    - php artisan migrate --force
+    # 5. Cachear configuración, rutas y vistas
     - php artisan config:cache
     - php artisan route:cache
     - php artisan view:cache
-    # 8. Permisos
+    # 6. Permisos de almacenamiento
     - chmod -R 775 $DEPLOYPATH/storage $DEPLOYPATH/bootstrap/cache
