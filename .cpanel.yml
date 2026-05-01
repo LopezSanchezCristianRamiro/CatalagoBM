@@ -12,12 +12,12 @@ deployment:
     - ls /tmp/.env.backup.* 2>/dev/null && /bin/cp /tmp/.env.backup.* $DEPLOYPATH/.env || true
     # 5. Instalar dependencias
     - cd $DEPLOYPATH
-    - /usr/local/bin/php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+    - php composer install --no-dev --optimize-autoloader --no-interaction --no-progress
     # 6. Migraciones
-    - /usr/local/bin/php artisan migrate:fresh --seed --force --no-interaction
+    - php artisan migrate:fresh --seed --force --no-interaction
     # 7. Cachear
-    - /usr/local/bin/php artisan config:cache
-    - /usr/local/bin/php artisan route:cache
-    - /usr/local/bin/php artisan view:cache
+    - php artisan config:cache
+    - php artisan route:cache
+    - php artisan view:cache
     # 8. Permisos
     - chmod -R 775 $DEPLOYPATH/storage $DEPLOYPATH/bootstrap/cache

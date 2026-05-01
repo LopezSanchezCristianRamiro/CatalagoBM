@@ -21,8 +21,7 @@ class PublicCatalogoController extends Controller
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
-                $q->where('nombre', 'LIKE', '%' . $search . '%')
-                    ->orWhere('descripcion', 'LIKE', '%' . $search . '%');
+                $q->where('nombre', 'LIKE', '%' . $search . '%');
             });
         }
 
