@@ -1,12 +1,23 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/ecoguz/catalogo.ecoguz.com/api
+    - export DEPLOYPATH=/home/met4s0ft3/catalogo.metasoft-bolivia.com/api
+    # 1. Respaldar .env (si existe)
+    - /bin/cp $DEPLOYPATH/.env /tmp/.env.backup.$(date +%s) 2>/dev/null || true
+    # 2. Borrar TODO excepto .env y storage (ignora errores si ya no existen)
+    - find $DEPLOYPATH -mindepth 1 -not \( -name ".env" -o -name "storage" \) -exec rm -rf {} \; 2>/dev/null || true
+    # 3. Copiar archivos frescos
     - /bin/cp -R ./* $DEPLOYPATH
+    # 4. Restaurar .env
+    - ls /tmp/.env.backup.* 2>/dev/null && /bin/cp /tmp/.env.backup.* $DEPLOYPATH/.env || true
+    # 5. Instalar dependencias
     - cd $DEPLOYPATH
     - /usr/local/bin/php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction --no-progress
-    - /usr/local/bin/php artisan migrate --force --no-interaction
+    # 6. Migraciones
+    - /usr/local/bin/php artisan migrate:fresh --seed --force --no-interaction
+    # 7. Cachear
     - /usr/local/bin/php artisan config:cache
     - /usr/local/bin/php artisan route:cache
     - /usr/local/bin/php artisan view:cache
+    # 8. Permisos
     - chmod -R 775 $DEPLOYPATH/storage $DEPLOYPATH/bootstrap/cache

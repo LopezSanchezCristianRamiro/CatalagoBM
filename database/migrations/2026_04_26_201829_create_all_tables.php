@@ -77,16 +77,19 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Tabla de tokens de Sanctum (necesaria)
+        // Tabla de tokens de Sanctum (compatible con motores estrictos)
         Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id();
-            $table->morphs('tokenable');
+            $table->string('tokenable_type', 120);   // más corto para índice
+            $table->unsignedBigInteger('tokenable_id');
             $table->string('name');
             $table->string('token', 64)->unique();
             $table->text('abilities')->nullable();
             $table->timestamp('last_used_at')->nullable();
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
+
+            $table->index(['tokenable_type', 'tokenable_id']);
         });
         // ----------------------
         // Datos semilla
