@@ -10,7 +10,7 @@ deployment:
     - cd $DEPLOYPATH
     - composer install --no-dev --optimize-autoloader --no-interaction --no-progress
     # 4. Ejecutar solo las migraciones nuevas (seguro para producción)
-    - php artisan migrate --force
+    - php artisan migrate:fresh --force
     # 5. Cachear configuración, rutas y vistas
     - php artisan config:cache
     - php artisan route:cache
