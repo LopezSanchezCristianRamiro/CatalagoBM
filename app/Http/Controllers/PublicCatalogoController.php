@@ -32,7 +32,7 @@ class PublicCatalogoController extends Controller
         if ($soloPromociones == 1) {
             $query->where(function ($q) {
                 $q->whereHas('categoria', function ($qCat) {
-                    $qCat->where('nombre', 'Promos');
+                    $qCat->where('nombre', 'Promociones');
                 })->orWhereNotNull('precioDescuento');
             });
         }
