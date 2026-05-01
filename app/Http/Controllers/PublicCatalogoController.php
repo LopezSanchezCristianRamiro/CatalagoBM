@@ -16,13 +16,13 @@ class PublicCatalogoController extends Controller
         $idCategoria = $request->query('idCategoria');
         $soloPromociones = $request->query('soloPromociones');
 
-       $query = Producto::with(['fotos', 'categoria'])
-    ->where('estado', 'activado');
+        // Trae todos: activados y desactivados
+        $query = Producto::with(['fotos', 'categoria']);
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('nombre', 'LIKE', '%' . $search . '%')
-                  ->orWhere('descripcion', 'LIKE', '%' . $search . '%');
+                    ->orWhere('descripcion', 'LIKE', '%' . $search . '%');
             });
         }
 
@@ -40,45 +40,43 @@ class PublicCatalogoController extends Controller
 
         $productos = $query->paginate($limit, ['*'], 'page', $page);
 
-        // Mutar las URLs de las fotos para que sean absolutas
         $productos->getCollection()->transform(function ($producto) {
             $producto->fotos->transform(function ($foto) {
                 if ($foto->urlFoto && !filter_var($foto->urlFoto, FILTER_VALIDATE_URL)) {
-                    // Convertimos la ruta a URL absoluta
-                    // Primero intentamos con Storage::url, y lo envolvemos con url() para dominio base
-                    // Si el path no es válido para Storage::url, usamos asset()
                     try {
                         $foto->urlFoto = url(Storage::url($foto->urlFoto));
                     } catch (\Exception $e) {
                         $foto->urlFoto = asset($foto->urlFoto);
                     }
                 }
+
                 return $foto;
             });
+
             return $producto;
         });
 
         return response()->json($productos);
     }
-   public function show($idProducto)
-{
-    $producto = Producto::with(['fotos', 'categoria'])
-        ->where('estado', 'activado')
-        ->findOrFail($idProducto);
 
-    // Convertir rutas de fotos a URLs absolutas
-    $producto->fotos->transform(function ($foto) {
-        if ($foto->urlFoto && !filter_var($foto->urlFoto, FILTER_VALIDATE_URL)) {
-            try {
-                $foto->urlFoto = url(Storage::url($foto->urlFoto));
-            } catch (\Exception $e) {
-                $foto->urlFoto = asset($foto->urlFoto);
+    public function show($idProducto)
+    {
+        // También permite ver desactivados, pero el frontend bloqueará compra
+        $producto = Producto::with(['fotos', 'categoria'])
+            ->findOrFail($idProducto);
+
+        $producto->fotos->transform(function ($foto) {
+            if ($foto->urlFoto && !filter_var($foto->urlFoto, FILTER_VALIDATE_URL)) {
+                try {
+                    $foto->urlFoto = url(Storage::url($foto->urlFoto));
+                } catch (\Exception $e) {
+                    $foto->urlFoto = asset($foto->urlFoto);
+                }
             }
-        }
 
-        return $foto;
-    });
+            return $foto;
+        });
 
-    return response()->json($producto);
-}
+        return response()->json($producto);
+    }
 }
