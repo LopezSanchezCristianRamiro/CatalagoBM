@@ -22,7 +22,7 @@ class ProductoController extends Controller
     {
         $data = $request->validate([
             'nombre' => 'required|string|max:150',
-            'descripcion' => 'nullable|string|max:150',
+            'descripcion' => 'nullable|string|max:2000',
             'precio' => 'required|numeric|min:0',
             'precioDescuento' => 'nullable|numeric|min:0',
             'idCategoria' => 'required|exists:Categoria,idCategoria',
@@ -61,7 +61,7 @@ class ProductoController extends Controller
 
         $data = $request->validate([
             'nombre' => 'required|string|max:150',
-            'descripcion' => 'nullable|string|max:150',
+            'descripcion' => 'nullable|string|max:2000',
             'precio' => 'required|numeric|min:0',
             'precioDescuento' => 'nullable|numeric|min:0',
             'idCategoria' => 'required|exists:Categoria,idCategoria',
