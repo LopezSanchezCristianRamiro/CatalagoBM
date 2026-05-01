@@ -15,7 +15,7 @@ class PublicCatalogoController extends Controller
         $search = $request->query('search', '');
         $idCategoria = $request->query('idCategoria');
         $soloPromociones = $request->query('soloPromociones');
-
+        $noPaginate = $request->boolean('all'); // ?all=1 para traer todo
         // Trae todos: activados y desactivados
         $query = Producto::with(['fotos', 'categoria']);
 
@@ -36,9 +36,11 @@ class PublicCatalogoController extends Controller
                 })->orWhereNotNull('precioDescuento');
             });
         }
-
-        $productos = $query->paginate($limit, ['*'], 'page', $page);
-
+        if ($noPaginate) {
+            $productos = $query->get();
+        } else {
+            $productos = $query->paginate($limit, ['*'], 'page', $page);
+        }
         $productos->getCollection()->transform(function ($producto) {
             $producto->fotos->transform(function ($foto) {
                 if ($foto->urlFoto && !filter_var($foto->urlFoto, FILTER_VALIDATE_URL)) {
