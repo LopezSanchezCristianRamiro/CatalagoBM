@@ -12,7 +12,7 @@ deployment:
     - ls /tmp/.env.backup.* 2>/dev/null && /bin/cp /tmp/.env.backup.* $DEPLOYPATH/.env || true
     # 5. Instalar dependencias
     - cd $DEPLOYPATH
-    - php composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+    - composer install --no-dev --optimize-autoloader --no-interaction --no-progress
     # 6. Migraciones
     - php artisan migrate:fresh --seed --force --no-interaction
     # 7. Cachear
