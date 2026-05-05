@@ -29,9 +29,12 @@ class AdminPedidoController extends Controller
 
                 'usuario' => [
                     'idUsuario' => $pedido->usuario?->idUsuario,
+                    'idRol' => $pedido->usuario?->idRol,
                     'nombre' => $pedido->usuario?->nombre,
                     'nombres' => $pedido->usuario?->nombres,
+                    'name' => $pedido->usuario?->name,
                     'correo' => $pedido->usuario?->correo,
+                    'celular' => $pedido->usuario?->celular,
                     'telefono' => $pedido->usuario?->telefono,
                 ],
 
@@ -58,30 +61,31 @@ class AdminPedidoController extends Controller
                             ],
                         ],
                     ];
-                }),
+                })->values(),
             ];
-        });
+        })->values();
 
         return response()->json([
             'message' => 'Pedidos obtenidos correctamente',
             'pedidos' => $pedidos,
         ]);
     }
+
     public function updateEstado(Request $request, $idPedido): JsonResponse
-{
-    $data = $request->validate([
-        'estado' => 'required|in:pendiente,pagado,cancelado,entregado',
-    ]);
+    {
+        $data = $request->validate([
+            'estado' => 'required|in:pendiente,pagado,cancelado,entregado',
+        ]);
 
-    $pedido = Pedido::findOrFail($idPedido);
+        $pedido = Pedido::findOrFail($idPedido);
 
-    $pedido->update([
-        'estado' => $data['estado'],
-    ]);
+        $pedido->update([
+            'estado' => $data['estado'],
+        ]);
 
-    return response()->json([
-        'message' => 'Estado actualizado correctamente',
-        'pedido' => $pedido,
-    ]);
-}
+        return response()->json([
+            'message' => 'Estado actualizado correctamente',
+            'pedido' => $pedido,
+        ]);
+    }
 }
