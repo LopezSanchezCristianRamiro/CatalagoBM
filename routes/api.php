@@ -12,6 +12,10 @@ use App\Http\Controllers\AdminPedidoController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// Login con Google
+Route::post('/auth/google', [\App\Http\Controllers\GoogleAuthController::class, 'verify']);
+Route::post('/auth/google/register', [\App\Http\Controllers\GoogleAuthController::class, 'register']);
+
 // Recuperar contraseña
 Route::post('/password/forgot-email', [AuthController::class, 'forgotEmail']);
 Route::post('/password/verify-code', [AuthController::class, 'verifyCode']);
