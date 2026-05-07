@@ -3,26 +3,34 @@
 namespace App\Http\Controllers;
 
 use App\Models\Producto;
+use App\Models\Categoria;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class PublicCatalogoController extends Controller
 {
+    private function resolverUrlFoto(?string $urlFoto): ?string
+    {
+        if (!$urlFoto) return null;
+
+        if (filter_var($urlFoto, FILTER_VALIDATE_URL)) {
+            return $urlFoto;
+        }
+
+        return config('app.url') . '/storage/' . $urlFoto;
+    }
+
     public function getProductos(Request $request)
     {
-        $page = $request->query('page', 1);
-        $limit = $request->query('limit', 15);
-        $search = $request->query('search', '');
-        $idCategoria = $request->query('idCategoria');
+        $page           = $request->query('page', 1);
+        $limit          = $request->query('limit', 15);
+        $search         = $request->query('search', '');
+        $idCategoria    = $request->query('idCategoria');
         $soloPromociones = $request->query('soloPromociones');
 
-        // Trae todos: activados y desactivados
         $query = Producto::with(['fotos', 'categoria']);
 
         if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('nombre', 'LIKE', '%' . $search . '%');
-            });
+            $query->where('nombre', 'LIKE', '%' . $search . '%');
         }
 
         if (!empty($idCategoria)) {
@@ -30,10 +38,14 @@ class PublicCatalogoController extends Controller
         }
 
         if ($soloPromociones == 1) {
-            $query->where(function ($q) {
-                $q->whereHas('categoria', function ($qCat) {
-                    $qCat->where('nombre', 'Promociones');
-                })->orWhereNotNull('precioDescuento');
+            $idCatPromo = Categoria::where('nombre', 'Promociones')
+                ->value('idCategoria'); 
+
+            $query->where(function ($q) use ($idCatPromo) {
+                if ($idCatPromo) {
+                    $q->where('idCategoria', $idCatPromo);
+                }
+                $q->orWhereNotNull('precioDescuento');
             });
         }
 
@@ -41,17 +53,9 @@ class PublicCatalogoController extends Controller
 
         $productos->getCollection()->transform(function ($producto) {
             $producto->fotos->transform(function ($foto) {
-                if ($foto->urlFoto && !filter_var($foto->urlFoto, FILTER_VALIDATE_URL)) {
-                    try {
-                        $foto->urlFoto = url(Storage::url($foto->urlFoto));
-                    } catch (\Exception $e) {
-                        $foto->urlFoto = asset($foto->urlFoto);
-                    }
-                }
-
+                $foto->urlFoto = $this->resolverUrlFoto($foto->urlFoto);
                 return $foto;
             });
-
             return $producto;
         });
 
@@ -60,19 +64,11 @@ class PublicCatalogoController extends Controller
 
     public function show($idProducto)
     {
-        // También permite ver desactivados, pero el frontend bloqueará compra
         $producto = Producto::with(['fotos', 'categoria'])
             ->findOrFail($idProducto);
 
         $producto->fotos->transform(function ($foto) {
-            if ($foto->urlFoto && !filter_var($foto->urlFoto, FILTER_VALIDATE_URL)) {
-                try {
-                    $foto->urlFoto = url(Storage::url($foto->urlFoto));
-                } catch (\Exception $e) {
-                    $foto->urlFoto = asset($foto->urlFoto);
-                }
-            }
-
+            $foto->urlFoto = $this->resolverUrlFoto($foto->urlFoto);
             return $foto;
         });
 
