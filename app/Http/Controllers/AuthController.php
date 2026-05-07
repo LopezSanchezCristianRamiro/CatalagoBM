@@ -196,6 +196,7 @@ class AuthController extends Controller
             'nombres' => $user->nombre,
             'correo' => $user->correo,
             'telefono' => $user->telefono,
+            'foto'          => $user->foto,
             'rol' => optional($user->rol)->nombre ?? 'Cliente',
         ];
     }
