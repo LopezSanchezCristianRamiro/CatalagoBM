@@ -32,10 +32,8 @@ private function verifyGoogleToken($idToken)
     foreach ($clientIds as $clientId) {
         $client = new Google_Client(['client_id' => $clientId]);
 
-        if (app()->environment('local')) {
-            $guzzle = new \GuzzleHttp\Client(['verify' => false]);
-            $client->setHttpClient($guzzle);
-        }
+        $guzzle = new \GuzzleHttp\Client(['verify' => false]);
+        $client->setHttpClient($guzzle);
 
         try {
             $payload = $client->verifyIdToken($idToken);
