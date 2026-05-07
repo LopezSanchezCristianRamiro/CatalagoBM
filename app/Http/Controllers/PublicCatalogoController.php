@@ -3,55 +3,66 @@
 namespace App\Http\Controllers;
 
 use App\Models\Producto;
+use App\Models\Categoria;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class PublicCatalogoController extends Controller
 {
-    public function getProductos(Request $request)
+    // Calculamos el prefijo UNA sola vez aquí
+    private function resolverUrlFoto(?string $urlFoto): ?string
     {
-        $page = $request->query('page', 1);
-        $limit = $request->query('limit', 15);
-        $search = $request->query('search', '');
-        $idCategoria = $request->query('idCategoria');
-        $soloPromociones = $request->query('soloPromociones');
+        if (!$urlFoto) return null;
 
-        // Trae todos: activados y desactivados
-        $query = Producto::with(['fotos', 'categoria']);
-
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('nombre', 'LIKE', '%' . $search . '%');
-            });
+        // Si ya es URL completa, no hacer nada
+        if (filter_var($urlFoto, FILTER_VALIDATE_URL)) {
+            return $urlFoto;
         }
 
+        // Construir URL sin llamar Storage cada vez
+        return config('app.url') . '/storage/' . $urlFoto;
+    }
+
+    public function getProductos(Request $request)
+    {
+        $page           = $request->query('page', 1);
+        $limit          = $request->query('limit', 15);
+        $search         = $request->query('search', '');
+        $idCategoria    = $request->query('idCategoria');
+        $soloPromociones = $request->query('soloPromociones');
+
+        $query = Producto::with(['fotos', 'categoria']);
+
+        // Filtro de búsqueda por nombre
+        if (!empty($search)) {
+            $query->where('nombre', 'LIKE', '%' . $search . '%');
+        }
+
+        // Filtro por categoría
         if (!empty($idCategoria)) {
             $query->where('idCategoria', $idCategoria);
         }
 
+        // Filtro promociones — CORREGIDO: 1 sola query simple en vez de whereHas
         if ($soloPromociones == 1) {
-            $query->where(function ($q) {
-                $q->whereHas('categoria', function ($qCat) {
-                    $qCat->where('nombre', 'Promociones');
-                })->orWhereNotNull('precioDescuento');
+            $idCatPromo = Categoria::where('nombre', 'Promociones')
+                ->value('idCategoria'); // ← solo busca el ID una vez
+
+            $query->where(function ($q) use ($idCatPromo) {
+                if ($idCatPromo) {
+                    $q->where('idCategoria', $idCatPromo);
+                }
+                $q->orWhereNotNull('precioDescuento');
             });
         }
 
         $productos = $query->paginate($limit, ['*'], 'page', $page);
 
+        // Transformar URLs — CORREGIDO: sin Storage::url() en loop
         $productos->getCollection()->transform(function ($producto) {
             $producto->fotos->transform(function ($foto) {
-                if ($foto->urlFoto && !filter_var($foto->urlFoto, FILTER_VALIDATE_URL)) {
-                    try {
-                        $foto->urlFoto = url(Storage::url($foto->urlFoto));
-                    } catch (\Exception $e) {
-                        $foto->urlFoto = asset($foto->urlFoto);
-                    }
-                }
-
+                $foto->urlFoto = $this->resolverUrlFoto($foto->urlFoto);
                 return $foto;
             });
-
             return $producto;
         });
 
@@ -60,19 +71,11 @@ class PublicCatalogoController extends Controller
 
     public function show($idProducto)
     {
-        // También permite ver desactivados, pero el frontend bloqueará compra
         $producto = Producto::with(['fotos', 'categoria'])
             ->findOrFail($idProducto);
 
         $producto->fotos->transform(function ($foto) {
-            if ($foto->urlFoto && !filter_var($foto->urlFoto, FILTER_VALIDATE_URL)) {
-                try {
-                    $foto->urlFoto = url(Storage::url($foto->urlFoto));
-                } catch (\Exception $e) {
-                    $foto->urlFoto = asset($foto->urlFoto);
-                }
-            }
-
+            $foto->urlFoto = $this->resolverUrlFoto($foto->urlFoto);
             return $foto;
         });
 
