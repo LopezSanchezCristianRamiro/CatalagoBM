@@ -35,6 +35,7 @@ class MiPedidoController extends Controller
     {
         $data = $request->validate([
             'tipoPago'                => 'required|string',
+            'estado'                  => 'nullable|string|in:pendiente,pagado,cancelado',
             'observacion'             => 'nullable|string',
             'items'                   => 'required|array|min:1',
             'items.*.idProducto'      => 'required|exists:Producto,idProducto',
@@ -52,7 +53,7 @@ class MiPedidoController extends Controller
                     'idUsuario'     => $request->user()->idUsuario,
                     'tipoPago'      => $data['tipoPago'],
                     'observacion'   => $data['observacion'] ?? null,
-                    'estado'        => 'pendiente',
+                    'estado'        => $data['estado'] ?? 'pendiente',
                     'total'         => $total,
                     'fechaCreacion' => now(),
                 ]);
@@ -70,7 +71,6 @@ class MiPedidoController extends Controller
                 return $pedido;
             });
 
-            // Cargar relaciones para la respuesta
             $pedido->load('detalles.producto.fotos');
 
             return response()->json([
@@ -79,10 +79,9 @@ class MiPedidoController extends Controller
             ], 201);
 
         } catch (\Throwable $e) {
-            // Loguea el error si quieres: \Log::error($e);
             return response()->json([
                 'message' => 'Error al crear el pedido',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
