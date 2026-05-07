@@ -8,17 +8,14 @@ use Illuminate\Http\Request;
 
 class PublicCatalogoController extends Controller
 {
-    // Calculamos el prefijo UNA sola vez aquí
     private function resolverUrlFoto(?string $urlFoto): ?string
     {
         if (!$urlFoto) return null;
 
-        // Si ya es URL completa, no hacer nada
         if (filter_var($urlFoto, FILTER_VALIDATE_URL)) {
             return $urlFoto;
         }
 
-        // Construir URL sin llamar Storage cada vez
         return config('app.url') . '/storage/' . $urlFoto;
     }
 
@@ -32,20 +29,17 @@ class PublicCatalogoController extends Controller
 
         $query = Producto::with(['fotos', 'categoria']);
 
-        // Filtro de búsqueda por nombre
         if (!empty($search)) {
             $query->where('nombre', 'LIKE', '%' . $search . '%');
         }
 
-        // Filtro por categoría
         if (!empty($idCategoria)) {
             $query->where('idCategoria', $idCategoria);
         }
 
-        // Filtro promociones — CORREGIDO: 1 sola query simple en vez de whereHas
         if ($soloPromociones == 1) {
             $idCatPromo = Categoria::where('nombre', 'Promociones')
-                ->value('idCategoria'); // ← solo busca el ID una vez
+                ->value('idCategoria'); 
 
             $query->where(function ($q) use ($idCatPromo) {
                 if ($idCatPromo) {
@@ -57,7 +51,6 @@ class PublicCatalogoController extends Controller
 
         $productos = $query->paginate($limit, ['*'], 'page', $page);
 
-        // Transformar URLs — CORREGIDO: sin Storage::url() en loop
         $productos->getCollection()->transform(function ($producto) {
             $producto->fotos->transform(function ($foto) {
                 $foto->urlFoto = $this->resolverUrlFoto($foto->urlFoto);
