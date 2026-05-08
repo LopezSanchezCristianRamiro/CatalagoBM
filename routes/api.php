@@ -8,6 +8,7 @@ use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\PublicCatalogoController;
 use App\Http\Controllers\MiPedidoController;
 use App\Http\Controllers\AdminPedidoController;
+use App\Http\Controllers\ReporteController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -38,4 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/pedidos', [AdminPedidoController::class, 'index']);
     Route::put('/admin/pedidos/{idPedido}/estado', [AdminPedidoController::class, 'updateEstado']);
     Route::put('/user/profile', [AuthController::class, 'updateProfile']);
+    
 });
+
+Route::post('/admin/reportes', [ReporteController::class, 'ventas']);
