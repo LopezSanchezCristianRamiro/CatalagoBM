@@ -39,7 +39,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/pedidos', [AdminPedidoController::class, 'index']);
     Route::put('/admin/pedidos/{idPedido}/estado', [AdminPedidoController::class, 'updateEstado']);
     Route::put('/user/profile', [AuthController::class, 'updateProfile']);
-    
+    Route::put('/admin/usuarios/{idUsuario}/rol', [AdminPedidoController::class, 'updateRolUsuario']);
+    Route::get('/admin/usuarios', [AdminPedidoController::class, 'usuarios']);
+Route::put('/admin/usuarios/{idUsuario}/rol', [AdminPedidoController::class, 'updateRolUsuario']);
 });
 
 Route::post('/admin/reportes', [ReporteController::class, 'ventas']);
