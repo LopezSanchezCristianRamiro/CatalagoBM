@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -199,5 +200,20 @@ class AuthController extends Controller
             'foto'          => $user->foto,
             'rol' => optional($user->rol)->nombre ?? 'Cliente',
         ];
+    }
+
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $request->validate([
+            'telefono' => ['required', 'string', 'min:6', 'max:20'],
+        ]);
+
+        $user = Auth::user();
+        $user->telefono = $request->input('telefono');
+        $user->save();
+
+        return response()->json([
+            'telefono' => $user->telefono,
+        ]);
     }
 }
