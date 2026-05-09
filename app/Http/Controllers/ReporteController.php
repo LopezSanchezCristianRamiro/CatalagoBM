@@ -19,8 +19,8 @@ class ReporteController extends Controller
         $inicio = $request->fechaInicio . ' 00:00:00';
         $fin    = $request->fechaFin    . ' 23:59:59';
 
-        // ─── Resumen general: todo en una sola query SQL ───────────────────────
-        $resumen = DB::table('pedidos')
+        // ─── Resumen general ───────────────────────────────────────────────────
+        $resumen = DB::table('Pedido') // <-- Cambiado a 'Pedido'
             ->whereBetween('fechaCreacion', [$inicio, $fin])
             ->where('estado', '!=', 'cancelado')
             ->selectRaw('
@@ -31,14 +31,14 @@ class ReporteController extends Controller
             ->first();
 
         // ─── Total de productos vendidos ───────────────────────────────────────
-        $totalProductos = DB::table('detalle_pedidos')
-            ->join('pedidos', 'detalle_pedidos.idPedido', '=', 'pedidos.idPedido')
-            ->whereBetween('pedidos.fechaCreacion', [$inicio, $fin])
-            ->where('pedidos.estado', '!=', 'cancelado')
-            ->sum('detalle_pedidos.cantidad');
+        $totalProductos = DB::table('DetallePedido') // <-- Cambiado a 'DetallePedido'
+            ->join('Pedido', 'DetallePedido.idPedido', '=', 'Pedido.idPedido') // <-- Cambiado a 'Pedido'
+            ->whereBetween('Pedido.fechaCreacion', [$inicio, $fin])
+            ->where('Pedido.estado', '!=', 'cancelado')
+            ->sum('DetallePedido.cantidad');
 
         // ─── Agrupación por estado ─────────────────────────────────────────────
-        $porEstado = DB::table('pedidos')
+        $porEstado = DB::table('Pedido') // <-- Cambiado a 'Pedido'
             ->whereBetween('fechaCreacion', [$inicio, $fin])
             ->where('estado', '!=', 'cancelado')
             ->groupBy('estado')
@@ -47,9 +47,9 @@ class ReporteController extends Controller
             ->keyBy('estado');
 
         // ─── Productos más vendidos ────────────────────────────────────────────
-        $productosMasVendidos = DB::table('detalle_pedidos AS d')
-            ->join('pedidos AS p',   'p.idPedido',   '=', 'd.idPedido')
-            ->join('productos AS pr', 'pr.idProducto', '=', 'd.idProducto')
+        $productosMasVendidos = DB::table('DetallePedido AS d') // <-- Cambiado a 'DetallePedido'
+            ->join('Pedido AS p',   'p.idPedido',   '=', 'd.idPedido') // <-- Cambiado a 'Pedido'
+            ->join('Producto AS pr', 'pr.idProducto', '=', 'd.idProducto') // <-- Cambiado a 'Producto'
             ->whereBetween('p.fechaCreacion', [$inicio, $fin])
             ->where('p.estado', '!=', 'cancelado')
             ->groupBy('d.idProducto', 'pr.nombre')
@@ -58,11 +58,11 @@ class ReporteController extends Controller
             ->limit(20)
             ->get();
 
-        // ─── Pedidos para el detalle del reporte (con relaciones mínimas) ──────
-        // Solo cargamos lo necesario para la vista; sin flatMap en PHP.
+        // ─── Pedidos para el detalle del reporte ───────────────────────────────
+        // Eloquent SÍ usa tus modelos automáticamente, así que esto ya funcionaba bien
         $pedidos = Pedido::with([
                 'usuario:idUsuario,nombre,correo',
-                'detalles:idDetalle,idPedido,idProducto,cantidad,subTotal',
+                'detalles:idDetallePedido,idPedido,idProducto,cantidad,subTotal', // <-- Asegúrate de que el ID aquí coincida con tu primaryKey 'idDetallePedido'
                 'detalles.producto:idProducto,nombre',
             ])
             ->whereBetween('fechaCreacion', [$inicio, $fin])

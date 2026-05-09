@@ -83,11 +83,12 @@
             <td width="48%" style="vertical-align: top;">
                 <div class="section-title">VENTAS POR ESTADO</div>
                 <table class="data-table">
+                    <!-- CORRECCIÓN AQUÍ: Se usa -> en lugar de [] -->
                     @foreach($porEstado as $estado => $val)
                     <tr>
                         <td><span class="badge">{{ strtoupper($estado) }}</span></td>
-                        <td>{{ $val['cantidad'] }} vtas</td>
-                        <td class="text-right">Bs. {{ number_format($val['total'], 2) }}</td>
+                        <td>{{ $val->cantidad }} vtas</td>
+                        <td class="text-right">Bs. {{ number_format($val->total, 2) }}</td>
                     </tr>
                     @endforeach
                 </table>
@@ -96,10 +97,11 @@
             <td width="48%" style="vertical-align: top;">
                 <div class="section-title">TOP PRODUCTOS</div>
                 <table class="data-table">
+                    <!-- CORRECCIÓN AQUÍ: Se usa -> en lugar de [] -->
                     @foreach($productosMasVendidos->take(5) as $prod)
                     <tr>
-                        <td>{{ $prod['nombre'] }}</td>
-                        <td class="text-right">Bs. {{ number_format($prod['ingresoTotal'], 2) }}</td>
+                        <td>{{ $prod->nombre }}</td>
+                        <td class="text-right">Bs. {{ number_format($prod->ingresoTotal, 2) }}</td>
                     </tr>
                     @endforeach
                 </table>
